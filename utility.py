@@ -199,4 +199,42 @@ def layout_model(image,page_index=0, table=True):
     
     return df
 
+def line_by_first_bbx(line_df,ocr_df,hight=0):
+    tp_bbx=[0,int(line_df.y_1-hight),int(line_df.page_width),int(line_df.y_2+hight)]
+    words= []
+    for idx,ocr_row in ocr_df.iloc[:,:4].iterrows():
+        word_bbx=ocr_row.astype(int).values
+        flag=check_point(tp_bbx,word_bbx)
+        if flag:
+            words.append(idx)
+    _line=ocr_df.loc[words]
+    return _line.sort_values(by=['x_1'], ascending=True)
+
+def Convert(a):
+    it = iter(a)
+    res_dct = dict(zip(it, it))
+    return res_dct
+
+def header_extraction(ocr_df):
+    ocr_df=is_header_footer(ocr_df)
+    header=ocr_df[(ocr_df.is_header_footer==True) & (ocr_df.page_index==2)]
+    header[["x_1","y_1","x_2","y_2"]]=header[["x_1","y_1","x_2","y_2"]].astype(int)
+    
+    header=ocr_df[(ocr_df.is_header_footer==True) & (ocr_df.page_index==2)]
+    header[["x_1","y_1","x_2","y_2"]]=header[["x_1","y_1","x_2","y_2"]].astype(int)
+    line1=header[(header.text=="Status") & (header.is_bold==True)]
+    line2=header[(header.text=="Title") & (header.is_bold==True)]
+    first_line=line_by_first_bbx(line1,header)
+    title=line_by_first_bbx(line2,header,abs(line2.y_1-line2.y_2))
+
+    header_list={"Status":"Status","Effective Date":"Effective-Date","Version":"Version","Doc Name":"Doc-Name"}
+
+    raw=" ".join(first_line.text)
+    for k,v in header_list.items():
+        raw=raw.replace(k,v)
+    header_dict=Convert(raw.split())
+    title_text=" ".join(title.sort_index().text).replace('Title','').strip()
+    header_dict["Title"]=title_text
+    return header_dict
+
 
