@@ -188,8 +188,8 @@ def layout_model(image,page_index=0, table=True):
     layout=model_TT.detect(image)
     df=layout.to_dataframe()
     df = pd.concat([df,table_layout])
-    df["is_overlap"]=df.index.isin(NMS(df.iloc[:,:4].values))
-    df=df[df.is_overlap==True] #rm for subtitle
+#     df["is_overlap"]=df.index.isin(NMS(df.iloc[:,:4].values))
+#     df=df[df.is_overlap==True] #rm for subtitle
     df["page_index"] = page_index
     df["height"] = abs(df.y_1-df.y_2)
     df['width'] = abs(df.x_1-df.x_2)
